@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $productos = $_SESSION['productos'];
             
-            $mensaje = "✅ Producto agregado exitosamente (ID: $nuevo_id)";
+            $mensaje = " Producto agregado exitosamente (ID: $nuevo_id)";
         } else {
-            $mensaje = "❌ Error: Nombre y precio son obligatorios";
+            $mensaje = " Error: Nombre y precio son obligatorios";
         }
     }
 
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($id_eliminar > 0 && isset($_SESSION['productos'][$id_eliminar])) {
             unset($_SESSION['productos'][$id_eliminar]);
             $productos = $_SESSION['productos'];
-            $mensaje = "✅ Producto eliminado";
+            $mensaje = " Producto eliminado";
         }
     }
     
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['productos'][$id_editar]['stock'] = intval($_POST['stock'] ?? $_SESSION['productos'][$id_editar]['stock']);
             
             $productos = $_SESSION['productos'];
-            $mensaje = "✅ Producto actualizado";
+            $mensaje = " Producto actualizado";
         }
     }
 }
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <div class="encabezado">
-        <h1>⚙️ Panel de Administración</h1>
+        <h1> Panel de Administración</h1>
         <div class="menu">
             <a href="index.php">← Volver a tienda</a>
             <span>Admin: <?php echo $usuario_nombre; ?></span>
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             
             <div class="seccion-admin">
-                <h2>📋 Productos Existentes</h2>
+                <h2> Productos Existentes</h2>
                 
                 <?php if (empty($productos)): ?>
                     <p>No hay productos.</p>
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <form method="POST" action="admin.php" style="display: inline;">
                                         <input type="hidden" name="accion" value="editar">
                                         <input type="hidden" name="id_producto" value="<?php echo $producto['id']; ?>">
-                                        <button type="submit" class="btn-chico" title="Editar">✏️</button>
+                                        <button type="submit" class="btn-chico" title="Editar"></button>
                                     </form>
                                     
                                     <form method="POST" action="admin.php" style="display: inline;">
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <button type="submit" class="btn-chico btn-rojo" 
                                                 onclick="return confirm('¿Eliminar este producto?')"
                                                 title="Eliminar">
-                                            🗑️
+                                            
                                         </button>
                                     </form>
                                 </td>
