@@ -34,19 +34,16 @@ foreach ($_SESSION['carrito'] as $id_producto => $cantidad) {
 $numero_whatsapp = "5491157416548"; 
 $fecha = date('d/m/Y H:i:s');
 
-$mensaje_whatsapp = "🚀 *NUEVO PEDIDO - SportShop*%0A";
+$mensaje_whatsapp = " *NUEVO PEDIDO - Tebori*%0A";
 $mensaje_whatsapp .= "------------------------%0A";
-$mensaje_whatsapp .= "📅 Fecha: " . $fecha . "%0A";
-$mensaje_whatsapp .= "👤 Cliente: " . $usuario_nombre . "%0A";
-$mensaje_whatsapp .= "📧 Email: " . $usuario_email . "%0A";
+$mensaje_whatsapp .= " Cliente: " . $usuario_nombre . "%0A";
+$mensaje_whatsapp .= " Email: " . $usuario_email . "%0A";
 $mensaje_whatsapp .= "------------------------%0A";
 $mensaje_whatsapp .= "*PRODUCTOS:*%0A" . $lista_productos;
 $mensaje_whatsapp .= "------------------------%0A";
-$mensaje_whatsapp .= "💰 *TOTAL: $" . number_format($total, 2) . "*%0A";
-$mensaje_whatsapp .= "🛒 Items: " . count($items_carrito) . "%0A";
+$mensaje_whatsapp .= " Items: " . count($items_carrito) . "%0A";
+$mensaje_whatsapp .= " *TOTAL: $" . number_format($total, 2) . "*%0A";
 $mensaje_whatsapp .= "------------------------%0A";
-$mensaje_whatsapp .= "📍 *Pedido desde:* http://localhost/tebori/%0A";
-$mensaje_whatsapp .= "ID Pedido: #" . rand(1000, 9999);
 
 $url_whatsapp = "https://wa.me/" . $numero_whatsapp . "?text=" . $mensaje_whatsapp;
 
