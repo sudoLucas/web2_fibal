@@ -1,88 +1,58 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['productos'])) {
+include_once 'db.php';
 
-    $_SESSION['productos'] = array();
-    
-    $_SESSION['productos'][1] = array(
-        'id' => 1,
-        'nombre' => 'Mancuernas 10kg',
-        'descripcion' => 'Mancuernas profesionales de acero',
-        'precio' => 45.99,
-        'categoria' => 'pesas',
-        'stock' => 15,
-        'imagen' => 'mancuernas.jpg'
-    );
-    
-    $_SESSION['productos'][2] = array(
-        'id' => 2,
-        'nombre' => 'Guantes de Boxeo',
-        'descripcion' => 'Guantes de cuero sintético profesional',
-        'precio' => 39.99,
-        'categoria' => 'boxeo',
-        'stock' => 8,
-        'imagen' => 'guantes.jpg'
-    );
-    
-    $_SESSION['productos'][3] = array(
-        'id' => 3,
-        'nombre' => 'Cuerda para Saltar',
-        'descripcion' => 'Cuerda ajustable con rodamientos',
-        'precio' => 19.99,
-        'categoria' => 'cardio',
-        'stock' => 25,
-        'imagen' => 'cuerda.jpg'
-    );
-    
-    $_SESSION['productos'][4] = array(
-        'id' => 4,
-        'nombre' => 'Barra Olímpica',
-        'descripcion' => 'Barra 20kg para levantamiento',
-        'precio' => 129.99,
-        'categoria' => 'pesas',
-        'stock' => 5,
-        'imagen' => 'barra.jpg'
-    );
-}
+$database = new Database();
+$conn = $database->getConnection();
 
 $categorias = array(
     'pesas' => '🏋️ Pesas',
     'boxeo' => '🥊 Boxeo',
     'cardio' => '🏃 Cardio',
-    'yoga' => '🧘 Yoga'
+    'yoga' => '🧘 Yoga',
+    'suplementos' => '💊 Suplementos',
+    'ropa' => '👕 Ropa Deportiva'
 );
 
-if (!isset($_SESSION['usuarios'])) {
-    $_SESSION['usuarios'] = array();
+function obtenerProductos($conn, $categoria_filtro = null) {
+    $query = "SELECT * FROM productos WHERE activo = 1";
     
-    $_SESSION['usuarios']['admin@deportes.com'] = array(
-        'id' => 1,
-        'nombre' => 'Administrador',
-        'password' => 'admin123',
-        'rol' => 'admin'
-    );
-    
-    $_SESSION['usuarios']['cliente@ejemplo.com'] = array(
-        'id' => 2,
-        'nombre' => 'Juan Pérez',
-        'password' => 'cliente123',
-        'rol' => 'cliente'
-    );
-}
-
-if (!isset($_SESSION['carrito'])) {
-    $_SESSION['carrito'] = array();
-}
-
-$productos = &$_SESSION['productos'];
-$usuarios = &$_SESSION['usuarios'];
-
-$total_carrito = 0;
-if (isset($_SESSION['carrito']) && is_array($_SESSION['carrito'])) {
-    foreach ($_SESSION['carrito'] as $cantidad) {
-        $total_carrito += $cantidad;
+    if ($categoria_filtro) {
+        $query .= " AND categoria = :categoria";
     }
+    $query .= " ORDER BY fecha_creacion DESC";
+    
+    $stmt = $conn->prepare($query);
+    
+    if ($categoria_filtro) {
+        $stmt->bindParam(':categoria', $categoria_filtro);
+    }
+    
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function obtenerProductoPorId($conn, $id) {
+    $query = "SELECT * FROM productos WHERE id = :id AND activo = 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+$productos_count = $conn->query("SELECT COUNT(*) as total FROM productos")->fetch(PDO::FETCH_ASSOC);
+if ($productos_count['total'] == 0) {
+    $sql = "INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES 
+            ('Mancuernas 10kg', 'Mancuernas profesionales de acero', 45.99, 'pesas', 15, 'mancuernas.jpg'),
+            ('Guantes de Boxeo', 'Guantes de cuero sintético profesional', 39.99, 'boxeo', 8, 'guantes.jpg')";
+    $conn->exec($sql);
+}
+
+$productos_array = obtenerProductos($conn);
+$productos = array();
+foreach ($productos_array as $producto) {
+    $productos[$producto['id']] = $producto;
 }
 
 $usuario_logueado = false;
@@ -92,16 +62,27 @@ $usuario_id = 0;
 $usuario_email = '';
 
 if (isset($_SESSION['usuario_id'])) {
-    $usuario_logueado = true;
-    $usuario_id = $_SESSION['usuario_id'];
-    $usuario_nombre = $_SESSION['usuario_nombre'];
-    $usuario_rol = $_SESSION['usuario_rol'];
+    $query = "SELECT * FROM usuarios WHERE id = :id";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':id', $_SESSION['usuario_id']);
+    $stmt->execute();
     
-    foreach ($usuarios as $email => $usuario) {
-        if ($usuario['id'] == $usuario_id) {
-            $usuario_email = $email;
-            break;
-        }
+    if ($stmt->rowCount() > 0) {
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+        $usuario_logueado = true;
+        $usuario_id = $usuario['id'];
+        $usuario_nombre = $usuario['nombre'];
+        $usuario_rol = $usuario['rol'];
+        $usuario_email = $usuario['email'];
+    } else {
+        unset($_SESSION['usuario_id']);
+        unset($_SESSION['usuario_nombre']);
+        unset($_SESSION['usuario_rol']);
     }
+}
+
+$total_carrito = 0;
+if (isset($_SESSION['carrito']) && is_array($_SESSION['carrito'])) {
+    $total_carrito = array_sum($_SESSION['carrito']);
 }
 ?>
