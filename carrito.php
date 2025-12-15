@@ -11,7 +11,7 @@ include 'datos.php';
 </head>
 <body>
     <div class="encabezado">
-        <h1>🛒 Carrito de Compras</h1>
+        <h1>Carrito</h1>
         <div class="menu">
             <a href="index.php">← Volver a productos</a>
             <?php if ($usuario_logueado): ?>
@@ -71,8 +71,8 @@ include 'datos.php';
                         <td>$<?php echo number_format($item['subtotal'], 2); ?></td>
                         <td>
                             <a href="quitar_carrito.php?id=<?php echo $item['producto']['id']; ?>" 
-                               onclick="return confirm('¿Quitar este producto?')">
-                                ❌ Quitar
+                               onclick="return confirm('¿Querés eliminar este producto?')">
+                                Quitar
                             </a>
                         </td>
                     </tr>
@@ -90,13 +90,13 @@ include 'datos.php';
                 <a href="index.php" class="btn">← Seguir comprando</a>
                 <a href="vaciar_carrito.php" class="btn btn-rojo" 
                    onclick="return confirm('¿Vaciar todo el carrito?')">
-                    🗑️ Vaciar Carrito
+                    Vaciar Carrito
                 </a>
                 
                 <?php if ($usuario_logueado): ?>
-                    <a href="pagar.php" class="btn btn-verde">💳 Proceder al Pago</a>
+                    <a href="pagar.php" class="btn btn-verde">Proceder al Pago</a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-verde">🔐 Iniciar sesión para comprar</a>
+                    <a href="login.php" class="btn btn-verde">Iniciar sesión para comprar</a>
                 <?php endif; ?>
             </div>
         <?php } ?>
