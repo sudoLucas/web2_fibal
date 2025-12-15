@@ -1,14 +1,8 @@
 <?php
-
-session_start();
-
-
 include 'datos.php';
-
 
 $error = '';
 $exito = '';
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nombre = $_POST['nombre'] ?? '';
@@ -16,47 +10,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';
     $confirmar_password = $_POST['confirmar_password'] ?? '';
     
-
     if (empty($nombre) || empty($email) || empty($password)) {
         $error = 'Todos los campos son obligatorios';
     } elseif ($password != $confirmar_password) {
         $error = 'Las contraseñas no coinciden';
     } elseif (strlen($password) < 6) {
         $error = 'La contraseña debe tener al menos 6 caracteres';
-    } elseif (isset($_SESSION['usuarios'][$email])) {
-        $error = 'Este email ya está registrado';
     } else {
-
-        $nuevo_id = 1;
-        if (!empty($_SESSION['usuarios'])) {
-            $ids = array();
-            foreach ($_SESSION['usuarios'] as $usuario) {
-                $ids[] = $usuario['id'];
+        $query_check = "SELECT id FROM usuarios WHERE email = :email";
+        $stmt_check = $conn->prepare($query_check);
+        $stmt_check->bindParam(':email', $email);
+        $stmt_check->execute();
+        
+        if ($stmt_check->rowCount() > 0) {
+            $error = 'Este email ya está registrado';
+        } else {
+            $query = "INSERT INTO usuarios (nombre, email, password, rol) 
+                     VALUES (:nombre, :email, :password, 'cliente')";
+            
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':password', $password); // En producción usar password_hash()
+            
+            if ($stmt->execute()) {
+                $nuevo_id = $conn->lastInsertId();
+                
+                $_SESSION['usuario_id'] = $nuevo_id;
+                $_SESSION['usuario_nombre'] = $nombre;
+                $_SESSION['usuario_rol'] = 'cliente';
+                
+                header('Location: index.php');
+                exit();
+            } else {
+                $error = 'Error al registrar usuario';
             }
-            $nuevo_id = max($ids) + 1;
         }
-        
-
-        $_SESSION['usuarios'][$email] = array(
-            'id' => $nuevo_id,
-            'nombre' => $nombre,
-            'password' => $password,  
-            'rol' => 'cliente'
-        );
-        
-
-        $usuarios = $_SESSION['usuarios'];
-        
-
-        $_SESSION['usuario_id'] = $nuevo_id;
-        $_SESSION['usuario_nombre'] = $nombre;
-        $_SESSION['usuario_rol'] = 'cliente';
-        
-        $exito = '¡Registro exitoso!';
-        
-
-        header('Location: index.php');
-        exit();
     }
 }
 ?>
@@ -65,46 +54,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - SportShop</title>
+    <title>Registro - Tebori</title>
     <link rel="stylesheet" href="estilo.css">
 </head>
 <body class="pagina-login">
     <div class="contenedor-login">
         <div class="login-box">
-            <h1>📝 Crear Cuenta</h1>
+            <h1>Crear Cuenta - Tebori</h1>
             
             <?php if ($error): ?>
                 <div class="error"><?php echo $error; ?></div>
             <?php endif; ?>
             
-            <?php if ($exito): ?>
-                <div class="exito"><?php echo $exito; ?></div>
-                <p>Redirigiendo al inicio...</p>
-            <?php else: ?>
-                <form method="POST" action="registro.php">
-                    <div class="grupo-form">
-                        <label>Nombre completo:</label>
-                        <input type="text" name="nombre" required>
-                    </div>
-                    
-                    <div class="grupo-form">
-                        <label>Email:</label>
-                        <input type="email" name="email" required>
-                    </div>
-                    
-                    <div class="grupo-form">
-                        <label>Contraseña:</label>
-                        <input type="password" name="password" required minlength="6">
-                    </div>
-                    
-                    <div class="grupo-form">
-                        <label>Confirmar contraseña:</label>
-                        <input type="password" name="confirmar_password" required>
-                    </div>
-                    
-                    <button type="submit" class="btn-login">Registrarse</button>
-                </form>
-            <?php endif; ?>
+            <form method="POST" action="registro.php">
+                <div class="grupo-form">
+                    <label>Nombre completo:</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                
+                <div class="grupo-form">
+                    <label>Email:</label>
+                    <input type="email" name="email" required>
+                </div>
+                
+                <div class="grupo-form">
+                    <label>Contraseña:</label>
+                    <input type="password" name="password" required minlength="6">
+                </div>
+                
+                <div class="grupo-form">
+                    <label>Confirmar contraseña:</label>
+                    <input type="password" name="confirmar_password" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Registrarse</button>
+            </form>
             
             <div class="login-links">
                 <p>¿Ya tienes cuenta? <a href="login.php">Inicia sesión aquí</a></p>
@@ -112,5 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     </div>
+    
 </body>
 </html>
